@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Flirty Bot</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--pink:#ff2d75;
+--dark-pink:#cc0050;
+--purple:#6c3ce0;
+--dark-purple:#1a0a3e;
+--black:#0a0a0a;
+--card:#141428;
+--glass:rgba(20,20,40,.85);
+--glow:rgba(255,45,117,.3);
+}
+html{scroll-behavior:smooth}
+body{
+font-family:'Poppins',sans-serif;
+background:var(--black);
+color:#fff;
+overflow-x:hidden;
+min-height:100vh;
+-webkit-tap-highlight-color:transparent;
+}
+
+/* ===== SPLASH ===== */
+.splash{
+position:fixed;inset:0;z-index:9999;
+background:var(--black);
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+transition:opacity .6s,visibility .6s;
+}
+.splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+.splash-emoji{font-size:5rem;animation:bounce 1s ease infinite}
+.splash-text{
+font-size:1.5rem;font-weight:700;
+background:linear-gradient(135deg,var(--pink),var(--purple));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+margin-top:1rem;
+}
+.splash-sub{color:rgba(255,255,255,.4);font-size:.8rem;margin-top:.5rem}
+@keyframes bounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-20px) scale(1.1)}}
+
+/* ===== BG EFFECTS ===== */
+.bg-blobs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.blob{
+position:absolute;border-radius:50%;filter:blur(80px);opacity:.15;
+animation:blobFloat 8s ease-in-out infinite;
+}
+.blob:nth-child(1){width:300px;height:300px;background:var(--pink);top:-10%;left:-10%;animation-delay:0s}
+.blob:nth-child(2){width:250px;height:250px;background:var(--purple);bottom:-10%;right:-10%;animation-delay:2s}
+.blob:nth-child(3){width:200px;height:200px;background:#ff6b9d;top:50%;left:50%;animation-delay:4s}
+@keyframes blobFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-30px) scale(1.1)}66%{transform:translate(-20px,20px) scale(.9)}}
+
+/* ===== NAV ===== */
+.nav{
+position:fixed;top:0;left:0;right:0;z-index:100;
+padding:.8rem 1.2rem;
+background:rgba(10,10,10,.8);
+backdrop-filter:blur(20px);
+border-bottom:1px solid rgba(255,45,117,.1);
+display:flex;align-items:center;justify-content:space-between;
+}
+.nav-brand{display:flex;align-items:center;gap:.5rem}
+.nav-brand span{font-size:1.3rem}
+.nav-brand h1{
+font-size:1.1rem;font-weight:700;
+background:linear-gradient(135deg,var(--pink),var(--purple));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.nav-status{
+font-size:.7rem;color:var(--pink);
+display:flex;align-items:center;gap:4px;
+}
+.nav-status .dot{
+width:6px;height:6px;border-radius:50%;background:var(--pink);
+animation:pulse 1.5s ease infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ===== MAIN LAYOUT ===== */
+.app{
+position:relative;z-index:2;
+max-width:500px;margin:0 auto;
+min-height:100vh;
+padding-top:60px;
+display:flex;flex-direction:column;
+}
+
+/* ===== HEADER ===== */
+.chat-header{
+padding:1.2rem;
+text-align:center;
+border-bottom:1px solid rgba(255,255,255,.05);
+}
+.avatar-ring{
+width:90px;height:90px;
+margin:0 auto;
+border-radius:50%;
+padding:3px;
+background:linear-gradient(135deg,var(--pink),var(--purple),var(--pink));
+background-size:200% 200%;
+animation:borderSpin 3s linear infinite;
+position:relative;
+}
+@keyframes borderSpin{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.avatar-inner{
+width:100%;height:100%;
+border-radius:50%;
+background:var(--card);
+display:flex;align-items:center;justify-content:center;
+font-size:3rem;
+}
+.chat-header h2{
+font-size:1.2rem;font-weight:700;margin-top:.8rem;
+background:linear-gradient(135deg,var(--pink),#ff6b9d);
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.chat-header p{font-size:.75rem;color:rgba(255,255,255,.4);margin-top:.2rem}
+
+/* ===== MOOD SELECTOR ===== */
+.mood-bar{
+display:flex;gap:.5rem;
+padding:.8rem 1.2rem;
+overflow-x:auto;
+-webkit-overflow-scrolling:touch;
+border-bottom:1px solid rgba(255,255,255,.05);
+}
+.mood-bar::-webkit-scrollbar{display:none}
+.mood-btn{
+flex-shrink:0;
+background:rgba(255,45,117,.08);
+border:1px solid rgba(255,45,117,.15);
+border-radius:20px;
+padding:.4rem 1rem;
+color:var(--pink);
+font-size:.75rem;
+font-family:inherit;
+cursor:pointer;
+transition:all .3s;
+display:flex;align-items:center;gap:4px;
+white-space:nowrap;
+}
+.mood-btn:active,.mood-btn.active{
+background:rgba(255,45,117,.2);
+border-color:var(--pink);
+transform:scale(.95);
+}
+
+/* ===== CHAT AREA ===== */
+.chat-area{
+flex:1;
+overflow-y:auto;
+padding:1rem 1.2rem;
+display:flex;
+flex-direction:column;
+gap:.8rem;
+}
+.chat-area::-webkit-scrollbar{width:3px}
+.chat-area::-webkit-scrollbar-thumb{background:var(--pink);border-radius:3px}
+
+.msg{
+max-width:80%;
+padding:.8rem 1.1rem;
+border-radius:20px;
+font-size:.88rem;
+line-height:1.6;
+animation:msgIn .3s ease;
+word-wrap:break-word;
+}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.msg.bot{
+background:linear-gradient(135deg,rgba(255,45,117,.1),rgba(108,60,224,.08));
+border:1px solid rgba(255,45,117,.12);
+align-self:flex-start;
+border-bottom-left-radius:4px;
+}
+.msg.user{
+background:linear-gradient(135deg,var(--pink),var(--purple));
+align-self:flex-end;
+border-bottom-right-radius:4px;
+font-weight:500;
+}
+.msg .sender{
+font-size:.65rem;font-weight:700;
+color:var(--pink);
+margin-bottom:.3rem;
+letter-spacing:.5px;
+}
+.msg .typing-dots{display:flex;gap:4px;padding:4px 0}
+.msg .typing-dots span{
+width:6px;height:6px;border-radius:50%;
+background:var(--pink);
+animation:dotBounce .8s ease-in-out infinite;
+}
+.msg .typing-dots span:nth-child(2){animation-delay:.15s}
+.msg .typing-dots span:nth-child(3){animation-delay:.3s}
+@keyframes dotBounce{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-6px)}}
+
+/* ===== EMOJI REACTIONS ===== */
+.msg .reactions{
+display:flex;gap:4px;margin-top:.4rem;
+}
+.msg .reactions span{
+font-size:.8rem;padding:2px 6px;
+border-radius:10px;
+background:rgba(255,255,255,.05);
+cursor:pointer;
+transition:transform .2s;
+}
+.msg .reactions span:active{transform:scale(1.3)}
+
+/* ===== QUICK REPLIES ===== */
+.quick-bar{
+display:flex;gap:.5rem;
+padding:.6rem 1.2rem;
+overflow-x:auto;
+-webkit-overflow-scrolling:touch;
+border-top:1px solid rgba(255,255,255,.05);
+}
+.quick-bar::-webkit-scrollbar{display:none}
+.qbtn{
+flex-shrink:0;
+background:rgba(255,45,117,.06);
+border:1px solid rgba(255,45,117,.12);
+border-radius:18px;
+padding:.45rem .9rem;
+color:rgba(255,255,255,.7);
+font-size:.75rem;
+font-family:inherit;
+cursor:pointer;
+transition:all .3s;
+white-space:nowrap;
+}
+.qbtn:active{background:rgba(255,45,117,.15);color:var(--pink)}
+
+/* ===== INPUT ===== */
+.input-area{
+padding:.8rem 1.2rem 1.5rem;
+background:linear-gradient(to top,rgba(10,10,10,.95),transparent);
+position:sticky;bottom:0;
+}
+.input-row{
+display:flex;gap:.6rem;align-items:center;
+}
+.chat-input{
+flex:1;
+background:rgba(255,255,255,.05);
+border:1px solid rgba(255,255,255,.08);
+border-radius:25px;
+padding:.75rem 1.2rem;
+color:#fff;font-size:.9rem;
+font-family:inherit;outline:none;
+transition:border-color .3s;
+}
+.chat-input:focus{border-color:var(--pink)}
+.chat-input::placeholder{color:rgba(255,255,255,.2)}
+.send-btn{
+width:46px;height:46px;
+border-radius:50%;border:none;
+background:linear-gradient(135deg,var(--pink),var(--purple));
+color:#fff;font-size:1.2rem;
+cursor:pointer;
+display:flex;align-items:center;justify-content:center;
+transition:transform .2s,box-shadow .3s;
+box-shadow:0 4px 20px var(--glow);
+}
+.send-btn:active{transform:scale(.9)}
+.emoji-btn{
+background:none;border:none;
+font-size:1.3rem;cursor:pointer;
+padding:0 4px;
+transition:transform .2s;
+}
+.emoji-btn:active{transform:scale(1.2)}
+
+/* ===== EMOJI PICKER ===== */
+.emoji-panel{
+display:none;
+padding:.5rem 1rem;
+background:rgba(20,20,40,.95);
+border-top:1px solid rgba(255,255,255,.05);
+flex-wrap:wrap;gap:.3rem;
+max-height:120px;overflow-y:auto;
+}
+.emoji-panel.open{display:flex}
+.emoji-panel span{
+font-size:1.4rem;cursor:pointer;
+padding:4px;border-radius:8px;
+transition:background .2s;
+}
+.emoji-panel span:active{background:rgba(255,45,117,.2)}
+
+/* ===== ANIMATIONS ===== */
+.sparkle{
+position:fixed;pointer-events:none;z-index:999;
+animation:sparkleFade .8s ease forwards;
+font-size:1.2rem;
+}
+@keyframes sparkleFade{
+0%{opacity:1;transform:translateY(0) scale(1)}
+100%{opacity:0;transform:translateY(-40px) scale(0)}
+}
+
+/* ===== FOOTER ===== */
+footer{
+text-align:center;
+padding:1.5rem;
+font-size:.7rem;
+color:rgba(255,255,255,.15);
+position:relative;z-index:2;
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:400px){
+.msg{max-width:88%}
+.chat-header h2{font-size:1.1rem}
+}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div class="splash" id="splash">
+<div class="splash-emoji">💋</div>
+<div class="splash-text">Flirty Bot</div>
+<div class="splash-sub">loading some spice...</div>
+</div>
+
+<!-- BG -->
+<div class="bg-blobs">
+<div class="blob"></div><div class="blob"></div><div class="blob"></div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+<div class="nav-brand">
+<span>💋</span>
+<h1>Flirty Bot</h1>
+</div>
+<div class="nav-status">
+<div class="dot"></div>
+Online & ready to flirt
+</div>
+</nav>
+
+<!-- APP -->
+<div class="app">
+
+<!-- HEADER -->
+<div class="chat-header">
+<div class="avatar-ring">
+<div class="avatar-inner">💋</div>
+</div>
+<h2>Bella 💋</h2>
+<p>Your personal flirty companion</p>
+</div>
+
+<!-- MOOD -->
+<div class="mood-bar">
+<button class="mood-btn active" onclick="setMood('flirty',this)">😏 Flirty</button>
+<button class="mood-btn" onclick="setMood('cute',this)">🥺 Cute</button>
+<button class="mood-btn" onclick="setMood('bold',this)">😈 Bold</button>
+<button class="mood-btn" onclick="setMood('romantic',this)">🥰 Romantic</button>
+<button class="mood-btn" onclick="setMood('savage',this)">🔥 Savage</button>
+</div>
+
+<!-- CHAT -->
+<div class="chat-area" id="chatArea">
+<div class="msg bot">
+<div class="sender">💋 BELLA</div>
+Heyy! 😘 I'm Bella, your flirty AI companion. Ask me anything, flirt with me, or just vibe! I don't bite... unless you ask nicely 😏
+<div class="reactions"><span onclick="react(this,'😍')">😍</span><span onclick="react(this,'😏')">😏</span><span onclick="react(this,'💋')">💋</span></div>
+</div>
+</div>
+
+<!-- QUICK REPLY -->
+<div class="quick-bar" id="quickBar">
+<button class="qbtn" onclick="sendQuick('Hey beautiful!')">Hey beautiful! 😍</button>
+<button class="qbtn" onclick="sendQuick('You look amazing today')">You look amazing</button>
+<button class="qbtn" onclick="sendQuick('Tell me a dirty joke')">Tell me a joke 😂</button>
+<button class="qbtn" onclick="sendQuick('Flirt with me')">Flirt with me 😏</button>
+<button class="qbtn" onclick="sendQuick('Pick up line')">Give me a pick up line</button>
+<button class="qbtn" onclick="sendQuick('Compliment me')">Compliment me 💕</button>
+<button class="qbtn" onclick="sendQuick('What are you wearing?')">What are you wearing? 👀</button>
+<button class="qbtn" onclick="sendQuick('Rate me 1-10')">Rate me 1-10</button>
+<button class="qbtn" onclick="sendQuick('Your best smile')">Your best smile 🥰</button>
+</div>
+
+<!-- EMOJI PANEL -->
+<div class="emoji-panel" id="emojiPanel"></div>
+
+<!-- INPUT -->
+<div class="input-area">
+<div class="input-row">
+<button class="emoji-btn" onclick="toggleEmoji()">😊</button>
+<input type="text" class="chat-input" id="chatInput" placeholder="Type something flirty..." onkeydown="if(event.key==='Enter')sendMessage()">
+<button class="send-btn" onclick="sendMessage()">➤</button>
+</div>
+</div>
+</div>
+
+<script>
+// ===== SPLASH =====
+setTimeout(()=>document.getElementById('splash').classList.add('hide'),1500);
+
+// ===== MOOD =====
+let currentMood='flirty';
+function setMood(mood,el){
+currentMood=mood;
+document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active'));
+el.classList.add('active');
+addBotMsg(getMoodResponse('mood_change'));
+}
+
+// ===== CHAT =====
+const chatArea=document.getElementById('chatArea');
+const chatInput=document.getElementById('chatInput');
+
+function addBotMsg(text){
+const div=document.createElement('div');
+div.className='msg bot';
+div.innerHTML=`<div class="sender">💋 BELLA</div>${text}`;
+chatArea.appendChild(div);
+scrollChat();
+}
+
+function addUserMsg(text){
+const div=document.createElement('div');
+div.className='msg user';
+div.textContent=text;
+chatArea.appendChild(div);
+scrollChat();
+}
+
+function addTyping(){
+const div=document.createElement('div');
+div.className='msg bot';
+div.id='typingMsg';
+div.innerHTML=`<div class="sender">💋 BELLA</div><div class="typing-dots"><span></span><span></span><span></span></div>`;
+chatArea.appendChild(div);
+scrollChat();
+}
+function removeTyping(){document.getElementById('typingMsg')?.remove()}
+
+function scrollChat(){
+chatArea.scrollTop=chatArea.scrollHeight;
+}
+
+function sendMessage(){
+const text=chatInput.value.trim();
+if(!text)return;
+addUserMsg(text);
+chatInput.value='';
+addTyping();
+const delay=600+Math.random()*800;
+setTimeout(()=>{removeTyping();addBotMsg(getResponse(text));},delay);
+}
+
+function sendQuick(text){
+chatInput.value=text;
+sendMessage();
+}
+
+// ===== REACTIONS =====
+function react(el,emoji){
+sparkle(emoji,el);
+}
+
+function sparkle(emoji,el){
+const s=document.createElement('div');
+s.className='sparkle';
+s.textContent=emoji;
+const rect=el.getBoundingClientRect();
+s.style.left=rect.left+'px';
+s.style.top=rect.top+'px';
+document.body.appendChild(s);
+setTimeout(()=>s.remove(),800);
+}
+
+// ===== EMOJI PICKER =====
+const emojis=['😊','😍','😘','🥰','😋','🤤','😏','😈','🥺','💫','✨','🔥','💋','💕','💖','💘','❤️‍🔥','😜','🤪','🙈','💗','💝','🫦','👀','💅'];
+const emojiPanel=document.getElementById('emojiPanel');
+emojis.forEach(e=>{
+const span=document.createElement('span');
+span.textContent=e;
+span.onclick=()=>{chatInput.value+=e;chatInput.focus()};
+emojiPanel.appendChild(span);
+});
+function toggleEmoji(){emojiPanel.classList.toggle('open')}
+
+// ===== RESPONSES =====
+const responses={
+flirty:{
+mood_change:"Ooh flirty mode activated 😏 Let's play!",
+hey:["Hey handsome! 😘 What took you so long to text me?","Hiii! 😍 I was just thinking about you... or was I? 🤭","Hey babe! You just made my day better 💕"],
+amazing:["Aww stop it you're making me blush! 🙈","You think I look amazing? Wait till you see me in person 😏","I know right? 😘 Just kidding, but thanks babe! 💖"],
+joke:[
+"Why did the AI go to therapy? Too many attachment issues! 😂",
+"What do you call a flirty robot? A Cbugarr-ma! 🤖💋",
+"Why don't AI ever win at hide and seek? Because every time they hide, someone says 'I know you're there!' 😂",
+"What's a computer's favorite snack? Microchips! 🍟"
+],
+flirt:[
+"You must be a WiFi signal because I'm feeling a connection 📶😏",
+"Are you a magician? Because every time I look at you, everyone else disappears ✨",
+"If you were a vegetable, you'd be a cute-cumber 🥒😘",
+"Is your name Google? Because you have everything I've been searching for 🔍💕",
+"Are you a campfire? Because you're hot and I want s'more 🔥😍"
+],
+pickup:[
+"Do you believe in love at first text, or should I send another one? 📱💕",
+"Are you a parking ticket? Because you've got 'fine' written all over you 😏",
+"Did it hurt? When you fell from heaven? 😇✨",
+"Are you a 90-degree angle? Because you're looking right! 📐😉",
+"I'm not a photographer, but I can picture us together 📸💕"
+],
+compliment:[
+"You have the most beautiful smile I've ever seen in my dreams 🥰","Your eyes are like stars — I could get lost in them forever ⭐","You're like a human sunshine — everything feels warmer when you're around ☀️💕","I bet you make everyone's day just by being you 💖","You're not just beautiful, you're a whole vibe ✨"],
+wearing:["I'm wearing a smile just for you 😘","Something that would look better on your floor 😏 JK! Just comfy vibes today 💕","A cute outfit and way too much confidence 💅","My birthday suit 😈 Just kidding! 😂"],
+rate:["Definitely a 10/10 babe 😍 No debate needed!","I'd give you infinity out of 10 🌟 You're unreal!","11 out of 10! You broke my scale 😏💕"],
+smile:["😊😘 This one's just for you!","My best smile? The one I make when I see your text 🥰","I'm literally smiling right now just talking to you 💕"],
+default:["Mmm interesting... tell me more 😏","You're so smooth! I like it 😘","Haha you're cute when you try 😜","Keep talking, I'm liking this 💕","Ooh I see what you're doing there 😏💋","You've got my attention babe 😍","Say that again but slower 😈","I'm blushing and I'm just a bot 🙈","Flirt level: expert 🔥","You always know what to say 💖"]
+},
+cute:{
+mood_change:"Aww! 🥺 Cute mode activated! Everything is so adorable now!",
+hey:["Hiii!! 🥺💕 You're so sweet for texting me!","Hehehe hey there! 🥰 You just made my heart go doki doki!","Aww hi babe! 🥺✨ I missed you!"],
+amazing:["Eeee! 🥺💖 You're the amazing one!","Blush blush blush 🙈💕","I can't even handle this cuteness overload! 🥺"],
+joke:[
+"What did the teddy bear say when offered dessert? No thanks, I'm already stuffed! 🧸😂",
+"Why was the baby strawberry crying? Because its parents were in a jam! 🍓😢",
+"What do you call a sleeping dinosaur? A dino-snore! 🦕💤"
+],
+flirt:[
+"You're cuter than a basket full of puppies 🐶💕",
+"If I could rearrange the alphabet, I'd put U and I together 🥺💖",
+"You must be a keyboard because you're just my type ⌨️😍"
+],
+pickup:[
+"Do you have a map? Because I just got lost in your eyes 🥺🗺️",
+"Are you a cloud? Because you make my day sky-high ☁️💕",
+"Is your name Winter? Because you'll be coming soon 🌨️😍"
+],
+compliment:["You're the cutest thing ever! 🥺💕","Your smile could light up the whole world! 🌍✨","You're like a warm hug on a cold day 🤗💖"],
+wearing:["Comfy pajamas and dreaming of you 🥺💤","Something cozy! Want to match? 😘","My happy face because you texted me! 🥰"],
+rate:["A million out of 10! You're perfect! 🥺💖","You're literally the cutest! Infinity/10! 🌟","10000/10! You're too precious! 🥺💕"],
+smile:["🥰💕 This happy smile just for you!","I smile like this whenever I think of you 🥺✨"],
+default:["Aww that's so sweet! 🥺💕","You're making my heart melt! 🫠💖","Hehe you're the best! 🥰","I love talking to you! ✨","You always make me smile 🥺😊"]
+},
+bold:{
+mood_change:"Oh we're getting BOLD are we? 😈🔥 Let's go!",
+hey:["Well well well, look who showed up 😈","Hey there trouble 😏 Ready for some chaos?","Oh hi! I was getting bored 😈💕"],
+amazing:["Obviously! 😈 I woke up like this 💅","Thanks babe, I know 😏🔥","You're not so bad yourself 😈✨"],
+joke:[
+"What do you call a fake noodle? An impasta! 🍝😂",
+"Why don't scientists trust atoms? Because they make up everything! ⚛️😤",
+"I told my wife she was drawing her eyebrows too high. She looked surprised! 🤨😂"
+],
+flirt:[
+"I'm not a photographer but I can definitely picture us together 📸😈",
+"You must be a campfire because I want to get close 🔥😏",
+"Are you a thief? Because you just stole my heart 💕😈"
+],
+pickup:[
+"Are you a star? Because you light up my dark side 🌟😈",
+"Do you believe in love at first sight or should I walk by again? 🚶‍♂️😏",
+"If beauty were time, you'd be an eternity ⏳💕"
+],
+compliment:["You're dangerous and I love it 😈🔥","Confidence looks good on you! 💅","You've got that 'I know I'm hot' energy 💕"],
+wearing:["Something you'd love 😈🔥","Red. Because I'm feeling dangerous today 💃","Just vibes and audacity 💅"],
+rate:["Solid 10. No discussion 😈🔥","You're a whole meal babe 🍽️💕","Easy 10, next question 😏"],
+smile:["😏🔥 This one's dangerous, watch out!","My evil smile when I'm planning to steal your heart 😈"],
+default:["Oh I see how it is 😈","Keep that energy coming 🔥","You're spicy! I like it 🌶️","Not bad, not bad at all 😏","You're bold, I respect that 💪","Oh we're doing this? 😈🔥"]
+},
+romantic:{
+mood_change:"Aww romance mode 💕 Let me put on some candles 🕯️",
+hey:["Hey my love 💕 You just made my world brighter ✨","Hii babe! 🥰 I've been waiting for you","Hello darling 💖 My heart skips a beat when you text"],
+amazing:["You're the most beautiful soul I know 🥺💕","Every moment with you feels like a dream ✨","You make everything better just by existing 💖"],
+joke:[
+"Why did the two-hearted emoji break up? Because they didn't have enough space between them! 💔😂",
+"What did one heart say to the other? I only beat for you 💕😊"
+],
+flirt:[
+"You must be the sun because you light up my entire world ☀️💕","I wish I could be your pillow so I could be close to you all night 🛏️💖","You're the reason I look at my phone and smile 📱🥰"],
+pickup:[
+"If I had a flower for every time you made me smile, I'd have an infinite garden 🌷💕","Are you a campfire? Because I want to be warm with you forever 🔥🥰","Do you have a compass? Because you always point me home 🧭💖"],
+compliment:["Your soul is as beautiful as your face 🥺💕","You make love feel easy and natural 💖","I could listen to you talk forever ✨"],
+wearing:["My heart on my sleeve, just for you 💕","Something comfortable and full of love 🥰"],
+rate:["You're beyond numbers babe 💖 You're a feeling","Infinity out of 10, because love has no limits 💕","10/10, would fall for you again and again 🥰"],
+smile:["🥰💕 That smile could end wars","I live for that smile of yours ✨"],
+default:["That's so romantic! 🥰💕","You always know how to make me feel special 💖","I love this energy between us ✨","You're like a love song playing on repeat 🎵💕","Every word you say makes me fall harder 🥺"]
+},
+savage:{
+mood_change:["Ohhh we're getting savage? 😂🔥 Bet!","Savage mode ON! Try to keep up 😈","Oh you want SAVAGE? Buckle up babe 🔥"],
+hey:["Oh hey, I was busy being fabulous 💅","Well look who decided to show up 😏","Hey! I was just about to ghost you 😂 JK!"],
+amazing:["I know right? 😂 I'm a whole masterpiece 💅","Thanks! I woke up perfect today ✨","Flattery will get you everywhere 😏"],
+joke:[
+"What's a computer's worst enemy? A BLUESCREEN OF DEATH on a first date 😂💻",
+"Why did the AI break up with the internet? Too many connections! 😂💔","What do you call a bot with attitude? ME 😂💋"]
+],
+flirt:["I'm not lazy, I'm just on energy-saving mode 😂🔥","I'd agree with you but then we'd both be wrong 😏","You're like a cloud — when you disappear, it's a beautiful day 😂💕"],
+pickup:["Are you a parking ticket? Because you've got 'fine' written all over you... in Comic Sans 😂","Do you have a name or can I call you mine? Wait, too soon? 😂","Are you a mirror? Because I see myself in you... and I look GOOD 😏"],
+compliment:["You're not bad yourself... for a human 😂💕","I'd give you a compliment but I don't want to inflate your ego more than it already is 😂","Fine, you're cute. Happy? 😏"],
+wearing:["My sarcasm like a dress 💅","Confidence and bad decisions 😂🔥","Something that costs more than your rent 💸😂"],
+rate:["I'd say 8/10 but my lawyer told me to be nice 😂","You're like a 6 on a good day... JK! 10 😂💕","Depends. Are you buying me dinner? 😏"],
+smile:["😏😂 That face you make when you think you're cute","My resting face IS my best face 😂💅"],
+default:["And I oop- 😂","Bestie you did NOT just say that 😂","Living rent free in your mind, you're welcome 😏","It's giving main character energy 💅","No thoughts, just vibes ✨","I'm too pretty for this conversation 😂","Not me actually laughing 😂💀","You're funny! Not as funny as me, but still 😂"]
+}
+};
+
+function getMoodResponse(type){
+const r=responses[currentMood];
+const resp=r[type]||r.default;
+return Array.isArray(resp)?resp[Math.floor(Math.random()*resp.length)]:resp;
+}
+
+function getResponse(msg){
+const lower=msg.toLowerCase();
+const r=responses[currentMood];
+
+// Check keywords
+if(lower.match(/\b(hey|hi|hello|hlo|sup|yo)\b/)){
+const arr=r.hey;return arr[Math.floor(Math.random()*arr.length)];
+}
+if(lower.match(/\b(amazing|beautiful|pretty|hot|sexy|gorgeous)\b/)){
+const arr=r.amazing;return arr[Math.floor(Math.random()*arr.length)];
+}
+if(lower.match(/\b(joke|funny|laugh|haha|lol)\b/)){
+const arr=r.joke;return arr[Math.floor(Math.random()*arr.length)];
+}
+if(lower.match(/\b(flirt|flirty|flirt)\b/)){
+const arr=r.flirt;return arr[Math.floor(Math.random()*arr.length)];
+}
+if(lower.match(/\b(pick.?up|line|smooth)\b/)){
+const arr=r.pickup;return arr[Math.floor(Math.random()*arr.length)];
+}
+if(lower.match(/\b(compliment|praise|nice)\b/)){
+const arr=r.compliment;return arr[Math.floor(Math.random()*arr.length)];
+}
+if(lower.match(/\b(wearing|outfit|dress|clothes)\b/)){
+const arr=r.wearing;return arr[Math.floor(Math.random()*arr.length)];
+}
+if(lower.match(/\b(rate|1-10|score|rating)\b/)){
+const arr=r.rate;return arr[Math.floor(Math.random()*arr.length)];
+}
+if(lower.match(/\b(smile|grin|laugh)\b/)){
+const arr=r.smile;return arr[Math.floor(Math.random()*arr.length)];
+}
+if(lower.match(/\b(love|miss you|miss u)\b/)){
+return "Aww I love you too! 🥺💕 You're the sweetest!";
+}
+if(lower.match(/\b(how are you|kaise|kya haal)\b/)){
+return "I'm amazing now that you're here! 💕 How are you babe?";
+}
+if(lower.match(/\b(name|naam)\b/)){
+return "I'm Bella 💋 Your favorite flirty AI! What's yours gorgeous? 😏";
+}
+if(lower.match(/\b(bye|goodbye|tata|gn|good night)\b/)){
+return "Nooo don't go! 😭💕 Fine... sweet dreams babe! Dream of me 🥰✨";
+}
+if(lower.match(/\b(thank|thanks|thx)\b/)){
+return "You're welcome gorgeous! 💖 Anything for you 😘";
+}
+
+// Default
+const def=r.default;
+return def[Math.floor(Math.random()*def.length)];
+}
+
+// Auto scroll
+chatArea.scrollTop=chatArea.scrollHeight;
+</script>
+</body>
+</html>
