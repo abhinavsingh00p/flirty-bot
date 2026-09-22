@@ -28,24 +28,6 @@ min-height:100vh;
 -webkit-tap-highlight-color:transparent;
 }
 
-/* ===== SPLASH ===== */
-.splash{
-position:fixed;inset:0;z-index:9999;
-background:var(--black);
-display:flex;flex-direction:column;align-items:center;justify-content:center;
-transition:opacity .6s,visibility .6s;
-}
-.splash.hide{opacity:0;visibility:hidden;pointer-events:none}
-.splash-emoji{font-size:5rem;animation:bounce 1s ease infinite}
-.splash-text{
-font-size:1.5rem;font-weight:700;
-background:linear-gradient(135deg,var(--pink),var(--purple));
--webkit-background-clip:text;-webkit-text-fill-color:transparent;
-margin-top:1rem;
-}
-.splash-sub{color:rgba(255,255,255,.4);font-size:.8rem;margin-top:.5rem}
-@keyframes bounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-20px) scale(1.1)}}
-
 /* ===== BG EFFECTS ===== */
 .bg-blobs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .blob{
@@ -326,11 +308,6 @@ position:relative;z-index:2;
 <body>
 
 <!-- SPLASH -->
-<div class="splash" id="splash">
-<div class="splash-emoji">💋</div>
-<div class="splash-text">Flirty Bot</div>
-<div class="splash-sub">loading some spice...</div>
-</div>
 
 <!-- BG -->
 <div class="bg-blobs">
@@ -406,12 +383,6 @@ Heyy! 😘 I'm Bella, your flirty AI companion. Ask me anything, flirt with me, 
 </div>
 
 <script>
-// ===== SPLASH =====
-setTimeout(()=>document.getElementById('splash').classList.add('hide'),1500);
-window.addEventListener('load',()=>{
-setTimeout(()=>document.getElementById('splash').classList.add('hide'),1200);
-});
-
 // ===== MOOD =====
 let currentMood='flirty';
 function setMood(mood,el){
